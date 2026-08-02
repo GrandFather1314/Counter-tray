@@ -1014,8 +1014,8 @@ var Viewer = (function () {
   var I18N = {
     en: {
       code: 'en', decimal: '.', thousands: ',',
-      title: 'Counter Tray Generator — parametric STL',
-      brand: 'Counter tray', tagline: 'parametric generator · stl',
+      title: 'Counter Tray Generator',
+      brand: 'Counter tray', tagline: 'parametric generator by GrandFather · Powered by <a href="https://github.com/jscad/OpenJSCAD.org">JSCAD</a>',
       partGroup: 'Part to generate', tray: 'Tray', lid: 'Lid',
       langGroup: 'Interface language',
       copyLink: 'Copy link', linkCopied: 'Link copied',
@@ -1058,8 +1058,8 @@ var Viewer = (function () {
     },
     fr: {
       code: 'fr', decimal: ',', thousands: '\u202F',
-      title: 'Générateur de plateau à jetons — STL paramétrique',
-      brand: 'Plateau à jetons', tagline: 'générateur paramétrique · stl',
+      title: 'Générateur de plateau à jetons',
+      brand: 'Plateau à jetons', tagline: 'générateur paramétrique par GrandFather · Propulsé par <a href="https://github.com/jscad/OpenJSCAD.org">JSCAD</a>',
       partGroup: 'Pièce à générer', tray: 'Plateau', lid: 'Couvercle',
       langGroup: 'Langue de l\u2019interface',
       copyLink: 'Copier le lien', linkCopied: 'Lien copié',
@@ -1278,7 +1278,7 @@ var Viewer = (function () {
     document.title = T.title;
 
     el('brandName').textContent = T.brand;
-    el('brandTag').textContent = T.tagline;
+    el('brandTag').innerHTML = T.tagline;
     el('segPart').setAttribute('aria-label', T.partGroup);
     el('segLang').setAttribute('aria-label', T.langGroup);
     el('btnTray').textContent = T.tray;
