@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<!--
+MIT License
+
+Copyright (c) 2026 GrandFather
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Counter Tray Generator — parametric STL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Archivo+Narrow:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E4E0D3; --panel:#F6F4ED; --panel-2:#EDE9DE; --sunk:#DAD5C6;
+  --ink:#191C22; --ink-2:#5C616B; --ink-3:#8B8E93;
+  --rule:#C9C3B2; --rule-2:#B4AC98;
+  --accent:#2C4B7C; --accent-soft:#D9E1EF; --hot:#A93B29;
+  --stage:#1E222A; --stage-2:#161A20;
+  --sans:'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --narrow:'Archivo Narrow', 'Archivo Condensed', var(--sans);
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --r:3px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans); color:var(--ink); background:var(--paper);
+  font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button,input{font:inherit;color:inherit}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-rows:auto 1fr auto;height:100dvh}
+
+header{
+  display:flex;align-items:center;gap:20px;
+  padding:12px 20px;border-bottom:1px solid var(--rule-2);
+  background:var(--panel);flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{
+  font-family:var(--narrow);font-weight:700;font-size:19px;
+  letter-spacing:.055em;text-transform:uppercase;
+}
+.brand span{
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
+  letter-spacing:.09em;text-transform:uppercase;
+}
+
+/* segmented control */
+.seg{display:flex;border:1px solid var(--rule-2);border-radius:var(--r);overflow:hidden;background:var(--sunk)}
+.seg button{
+  appearance:none;background:transparent;border:0;cursor:pointer;
+  font-family:var(--narrow);font-weight:600;font-size:13px;letter-spacing:.07em;
+  text-transform:uppercase;padding:7px 16px;color:var(--ink-2);
+  transition:background .15s,color .15s;
+}
+.seg button+button{border-left:1px solid var(--rule-2)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--hot);outline-offset:-2px}
+.seg-sm button{padding:6px 11px;font-size:11.5px;letter-spacing:.1em}
+
+.ghost{
+  appearance:none;background:transparent;border:1px solid var(--rule-2);
+  border-radius:var(--r);cursor:pointer;padding:6px 12px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-2);
+  text-transform:uppercase;transition:border-color .15s,color .15s;
+}
+.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+main{display:grid;grid-template-columns:352px 1fr;min-height:0}
+
+/* ---------- parameters ---------- */
+.params{
+  border-right:1px solid var(--rule-2);background:var(--panel);
+  overflow-y:auto;overscroll-behavior:contain;padding-bottom:24px;
+}
+.params details{border-top:1px solid var(--rule)}
+.params details:first-of-type{border-top:0}
+summary{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  padding:13px 20px;list-style:none;-webkit-user-select:none;user-select:none;
+  font-family:var(--narrow);font-weight:700;font-size:12px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--accent);
+  transition:background .14s;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:'';margin-left:auto;flex:none;width:7px;height:7px;
+  border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;
+  transform:translateY(-2px) rotate(45deg);transition:transform .2s;
+}
+details[open]>summary::after{transform:translateY(1px) rotate(-135deg)}
+summary:hover{background:var(--panel-2)}
+summary:focus-visible{outline:2px solid var(--hot);outline-offset:-2px}
+.grp-body{padding:2px 20px 18px}
+.hint{font-size:11.5px;color:var(--ink-3);margin:0 0 13px;line-height:1.4;max-width:34ch}
+
+.f{display:block;margin-bottom:13px}
+.f-top{display:flex;align-items:baseline;gap:8px}
+.f-k{font-size:12.5px;line-height:1.3;color:var(--ink-2);flex:1;min-width:0}
+.f-u{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.f-n{
+  width:66px;text-align:right;font-family:var(--mono);font-size:12.5px;font-weight:500;
+  background:var(--panel-2);border:1px solid var(--rule);border-radius:var(--r);
+  padding:2px 6px;-moz-appearance:textfield;
+}
+.f-n::-webkit-outer-spin-button,.f-n::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.f-n:focus{outline:0;border-color:var(--accent);background:#fff}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;background:transparent;
+  margin-top:7px;height:14px;cursor:ew-resize;display:block;
+}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule-2);border-radius:2px}
+input[type=range]::-moz-range-track{height:2px;background:var(--rule-2);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;margin-top:-5.5px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--panel);box-shadow:0 0 0 1px var(--accent);
+}
+input[type=range]::-moz-range-thumb{
+  width:11px;height:11px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--panel);box-shadow:0 0 0 1px var(--accent);
+}
+input[type=range]:focus-visible{outline:2px solid var(--hot);outline-offset:3px;border-radius:2px}
+
+.f.locked .f-k,.f.locked .f-u{color:var(--ink-3)}
+.f.locked .f-n{background:var(--sunk);color:var(--ink-3);border-style:dashed;cursor:not-allowed}
+.f.locked input[type=range]{cursor:not-allowed;opacity:.5}
+.f.locked input[type=range]::-webkit-slider-thumb{background:var(--rule-2);box-shadow:0 0 0 1px var(--rule-2)}
+.f.locked input[type=range]::-moz-range-thumb{background:var(--rule-2);box-shadow:0 0 0 1px var(--rule-2)}
+
+.check{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.check input{margin-top:2px;accent-color:var(--accent);width:14px;height:14px}
+.check small{display:block;color:var(--ink-3);font-size:11px;line-height:1.35}
+
+/* ---------- stage ---------- */
+.stage{position:relative;background:var(--stage);min-height:0;overflow:hidden}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.stage-fail{
+  position:absolute;inset:0;display:none;place-items:center;text-align:center;
+  padding:32px;color:#C7CBD4;font-size:13px;line-height:1.6;
+}
+.stage.failed .stage-fail{display:grid}
+
+.views{position:absolute;top:14px;right:14px;display:flex;gap:6px}
+.views button{
+  appearance:none;background:rgba(246,244,237,.09);border:1px solid rgba(246,244,237,.22);
+  color:#D6D9DF;border-radius:var(--r);cursor:pointer;padding:5px 10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  backdrop-filter:blur(6px);transition:background .15s;
+}
+.views button:hover{background:rgba(246,244,237,.2)}
+.views button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+
+.busy{
+  position:absolute;top:14px;left:14px;display:flex;gap:8px;align-items:center;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:#AEB4BF;opacity:0;transition:opacity .18s;pointer-events:none;
+}
+.busy.on{opacity:1}
+.busy i{width:7px;height:7px;background:var(--hot);border-radius:50%;animation:pulse 1s infinite ease-in-out}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+
+/* signature: live plan drawing pinned to the stage */
+.plan{
+  position:absolute;left:14px;bottom:14px;width:224px;
+  background:rgba(246,244,237,.94);border:1px solid var(--rule-2);
+  border-radius:var(--r);padding:10px 10px 7px;
+  box-shadow:0 8px 24px rgba(0,0,0,.34);
+}
+.plan h2{
+  font-family:var(--narrow);font-weight:700;font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;
+}
+.plan svg{display:block;width:100%;height:auto;overflow:visible}
+.plan-note{
+  font-family:var(--mono);font-size:9.5px;color:var(--ink-3);
+  margin-top:6px;letter-spacing:.03em;
+}
+
+/* ---------- spec strip (footer) ---------- */
+.spec{
+  border-top:1px solid var(--rule-2);background:var(--panel);
+  display:flex;align-items:center;gap:22px;padding:11px 20px;flex-wrap:wrap;
+}
+.spec-dims{
+  font-family:var(--mono);font-weight:600;font-size:17px;letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.spec-dims em{font-style:normal;color:var(--ink-3);font-weight:400}
+.spec-list{
+  display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;
+  color:var(--ink-2);letter-spacing:.03em;
+}
+.spec-list b{font-weight:600;color:var(--ink)}
+.spec-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+
+.dl{
+  appearance:none;border:0;border-radius:var(--r);cursor:pointer;
+  background:var(--hot);color:#fff;padding:10px 20px;
+  font-family:var(--narrow);font-weight:700;font-size:14px;
+  letter-spacing:.08em;text-transform:uppercase;
+  transition:filter .15s;
+}
+.dl:hover{filter:brightness(1.1)}
+.dl:disabled{background:var(--rule-2);cursor:progress}
+.dl:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.warn{
+  width:100%;font-family:var(--mono);font-size:11px;color:var(--hot);
+  letter-spacing:.02em;display:none;
+}
+.warn.on{display:block}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  .shell{height:auto;min-height:100dvh}
+  main{grid-template-columns:1fr}
+  .stage{order:-1;height:46vh;min-height:280px;border-bottom:1px solid var(--rule-2)}
+  .params{border-right:0}
+  .plan{width:150px;left:10px;bottom:10px;padding:7px 7px 5px}
+  .plan-note{display:none}
+  .spec{position:sticky;bottom:0;z-index:5}
+  .spec-dims{font-size:15px}
+  .spec-list{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <b id="brandName">Counter tray</b>
+      <span id="brandTag">parametric generator by GrandFather</span>
+    </div>
+    <div class="seg" id="segPart" role="group" aria-label="Part to generate">
+      <button type="button" id="btnTray" aria-pressed="true">Tray</button>
+      <button type="button" id="btnLid"  aria-pressed="false">Lid</button>
+    </div>
+    <button type="button" class="ghost" id="btnLink">Copy link</button>
+    <button type="button" class="ghost" id="btnReset">Reset</button>
+    <div class="seg seg-sm" id="segLang" role="group" aria-label="Interface language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="params" id="params" aria-label="Parameters"></aside>
+
+    <section class="stage" id="stage">
+      <canvas id="gl"></canvas>
+      <div class="busy" id="busy"><i></i><span id="busyText">Working</span></div>
+      <div class="views">
+        <button type="button" data-view="iso">Iso</button>
+        <button type="button" data-view="top">Top</button>
+        <button type="button" data-view="front">Front</button>
+      </div>
+      <figure class="plan">
+        <h2 id="planTitle">Slot plan</h2>
+        <svg id="plan" viewBox="0 0 100 70" aria-hidden="true"></svg>
+        <figcaption class="plan-note" id="planNote"></figcaption>
+      </figure>
+      <div class="stage-fail" id="stageFail"></div>
+    </section>
+  </main>
+
+  <footer class="spec">
+    <div class="spec-dims" id="dims">— <em>×</em> — <em>×</em> —</div>
+    <div class="spec-list" id="stats"></div>
+    <div class="spec-actions">
+      <label class="check" style="font-size:11px">
+        <input type="checkbox" id="fuse">
+        <span id="fuseLabel">Fuse into one solid</span>
+      </label>
+      <button type="button" class="dl" id="download" disabled>Download STL</button>
+    </div>
+    <p class="warn" id="warn"></p>
+  </footer>
+
+</div>
+
+<script>
+/* ==================================================================
+   1. JSCAD library loader (tries several CDNs, then gives up cleanly)
+   ================================================================== */
+(function () {
+  var urls = [
+    'https://cdn.jsdelivr.net/npm/@jscad/modeling@2.13.0/dist/jscad-modeling.min.js',
+    'https://unpkg.com/@jscad/modeling@2.13.0/dist/jscad-modeling.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jscad-modeling/2.13.0/jscad-modeling.min.js'
+  ];
+  var i = 0;
+  function next() {
+    if (i >= urls.length) { window.dispatchEvent(new Event('jscad-failed')); return; }
+    var s = document.createElement('script');
+    s.src = urls[i++];
+    s.onload = function () {
+      if (window.jscadModeling) window.dispatchEvent(new Event('jscad-ready'));
+      else next();
+    };
+    s.onerror = next;
+    document.head.appendChild(s);
+  }
+  next();
+}());
+</script>
+
+<script>
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('@jscad/modeling'));
+  else if (root.jscadModeling) root.CounterTray = factory(root.jscadModeling);
+  else root.CounterTrayFactory = factory;   // library still loading — wired up later
+}(typeof self !== 'undefined' ? self : this, function (M) {
+  'use strict';
+
+  var geom2 = M.geometries.geom2;
+  var extrudeLinear = M.extrusions.extrudeLinear;
+  var translate = M.transforms.translate;
+  var rotateX = M.transforms.rotateX;
+  var rotateZ = M.transforms.rotateZ;
+  var cuboid = M.primitives.cuboid;
+  var union = M.booleans.union;
+
+  var DEFAULTS = {
+    lid: false,
+    maxLength: 220,
+    maxWidth: 150,
+    cols: 0,
+    rows: 0,
+    counterLength: 17,
+    counterWidth: 17,
+    counterStack: 10,
+    thickness: 1.2,
+    window: 0.7,
+    outerWall: 1.2,
+    innerWall: 1,
+    opening: 0.5,
+    fillet: 2,
+    lidWall: 1.2,
+    lidClearance: 0,
+    lidNotch: 0.75
+  };
+
+  var ARC = 6;      // segments per 90° arc
+  var EPS = 0.02;   // overlap between parts, so slicers weld them reliably
+
+  /* ---------- 2D helpers: build geom2 directly from loops ---------- */
+
+  // Drops points that coincide with their neighbour, including across the
+  // wrap-around. A repeated point would otherwise become a zero-length
+  // edge and leave the extruded shell non-manifold.
+  function dedupe(pts) {
+    var out = [], i, p, q;
+    for (i = 0; i < pts.length; i++) {
+      p = pts[i]; q = out.length ? out[out.length - 1] : null;
+      if (q && Math.abs(q[0] - p[0]) < 1e-9 && Math.abs(q[1] - p[1]) < 1e-9) continue;
+      out.push(p);
+    }
+    while (out.length > 2) {
+      q = out[out.length - 1]; p = out[0];
+      if (Math.abs(q[0] - p[0]) < 1e-9 && Math.abs(q[1] - p[1]) < 1e-9) out.pop();
+      else break;
+    }
+    return out;
+  }
+
+  function loopSides(pts, hole) {
+    var p = hole ? pts.slice().reverse() : pts;
+    var sides = [];
+    for (var i = 0; i < p.length; i++) sides.push([p[i], p[(i + 1) % p.length]]);
+    return sides;
+  }
+
+  function rectLoop(x, y, w, h) {
+    return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+  }
+
+  function roundedRectLoop(cx, cy, w, h, r) {
+    var hw = w / 2, hh = h / 2;
+    r = Math.max(0, Math.min(r, hw, hh));
+    if (r === 0) return rectLoop(cx - hw, cy - hh, w, h);
+    var pts = [];
+    var corners = [
+      [hw - r, hh - r, 0], [-hw + r, hh - r, Math.PI / 2],
+      [-hw + r, -hh + r, Math.PI], [hw - r, -hh + r, -Math.PI / 2]
+    ];
+    for (var c = 0; c < 4; c++) {
+      var ox = corners[c][0], oy = corners[c][1], a0 = corners[c][2];
+      for (var i = 0; i <= ARC; i++) {
+        var a = a0 + (Math.PI / 2) * (i / ARC);
+        pts.push([cx + ox + r * Math.cos(a), cy + oy + r * Math.sin(a)]);
+      }
+    }
+    return dedupe(pts);
+  }
+
+  // Wall side-profile: flat base, optionally rounded top corners.
+  function wallLoop(u0, L, H, r, roundStart, roundEnd) {
+    r = Math.max(0, Math.min(r, L / 2, H));
+    if (r === 0) { roundStart = false; roundEnd = false; }
+    var pts = [[u0, 0], [u0 + L, 0]], i, a;
+    if (roundEnd) {
+      pts.push([u0 + L, H - r]);
+      for (i = 1; i <= ARC; i++) {
+        a = (Math.PI / 2) * (i / ARC);
+        pts.push([u0 + L - r + r * Math.cos(a), H - r + r * Math.sin(a)]);
+      }
+    } else pts.push([u0 + L, H]);
+    if (roundStart) {
+      for (i = 0; i <= ARC; i++) {
+        a = Math.PI / 2 + (Math.PI / 2) * (i / ARC);
+        pts.push([u0 + r + r * Math.cos(a), H - r + r * Math.sin(a)]);
+      }
+    } else pts.push([u0, H]);
+    return dedupe(pts);
+  }
+
+  // Lid side wall seen from outside: tall posts at both ends, low rail between.
+  function notchedSideLoop(L, H, rail, corner, r) {
+    r = Math.max(0, Math.min(r, corner / 2, H - rail));
+    var pts = [[0, 0], [L, 0], [L, H]], i, a;
+    if (r < 1e-6) {
+      pts.push([L - corner, H], [L - corner, rail], [corner, rail], [corner, H], [0, H]);
+      return pts;
+    }
+    for (i = 0; i <= ARC; i++) {          // right post, top-inner fillet
+      a = (Math.PI / 2) * (i / ARC);
+      pts.push([L - corner + r - r * Math.sin(a), H - r + r * Math.cos(a)]);
+    }
+    pts.push([L - corner, rail], [corner, rail]);
+    for (i = 0; i <= ARC; i++) {          // left post, top-inner fillet
+      a = (Math.PI / 2) * (i / ARC);
+      pts.push([corner - r + r * Math.cos(a), H - r + r * Math.sin(a)]);
+    }
+    pts.push([0, H]);
+    return dedupe(pts);
+  }
+
+  function fromLoops(outer, holes) {
+    var sides = [];
+    for (var i = 0; i < outer.length; i++) sides = sides.concat(loopSides(outer[i], false));
+    if (holes) for (var j = 0; j < holes.length; j++) sides = sides.concat(loopSides(holes[j], true));
+    return geom2.create(sides);
+  }
+
+  /* ---------- placement helpers ---------- */
+
+  function box(x, y, z, w, d, h) {
+    return translate([x + w / 2, y + d / 2, z + h / 2], cuboid({ size: [w, d, h] }));
+  }
+
+  // Extrude a (u,z) profile into a slab running along +X, thickness t in Y.
+  function slabX(x, y, profile, t, z) {
+    return translate([x, y + t, z || 0], rotateX(Math.PI / 2, extrudeLinear({ height: t }, profile)));
+  }
+  // Same, running along +Y, thickness t in X.
+  function slabY(x, y, profile, t, z) {
+    return translate([x + t, y, 0], rotateZ(Math.PI / 2, slabX(0, 0, profile, t, z)));
+  }
+
+  /* ---------- layout ---------- */
+
+  function fitSlots(maxDim, size, p) {
+    var pitch = size + p.innerWall;
+    var margins = 2 * (p.outerWall + p.lidWall + p.lidClearance);
+    // the epsilon keeps an exactly-fitting dimension from being rejected
+    // by floating-point drift (e.g. 16.8 / 8.4 landing on 1.9999...)
+    return Math.max(1, Math.floor((maxDim - margins + p.innerWall) / pitch + 1e-7));
+  }
+
+  function computeLayout(params) {
+    var p = normalise(params);
+    var rows = p.rows > 0 ? Math.round(p.rows) : fitSlots(p.maxWidth, p.counterWidth, p);
+    var cols = p.cols > 0 ? Math.round(p.cols) : fitSlots(p.maxLength, p.counterLength, p);
+    var iw = p.innerWall;
+    var trayW = rows * p.counterWidth + (rows - 1) * iw + 2 * p.outerWall;
+    var trayL = cols * p.counterLength + (cols - 1) * iw + 2 * p.outerWall;
+    var trayH = p.thickness + p.counterStack;
+    var skirt = p.lidWall + p.lidClearance;
+    return {
+      rows: rows, cols: cols, stacks: rows * cols,
+      trayW: trayW, trayL: trayL, trayH: trayH,
+      lidW: trayW + 2 * skirt, lidL: trayL + 2 * skirt, lidH: trayH + p.thickness,
+      skirt: skirt,
+      // overall assembled envelope
+      totalW: trayW + 2 * skirt, totalL: trayL + 2 * skirt, totalH: trayH + p.thickness
+    };
+  }
+
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  // Largest rounding radius that still leaves recognisable geometry: half
+  // the smallest counter side (windows and notches) and half the stack
+  // height (divider and skirt tops).
+  function maxFillet(params) {
+    var p = normalise(params || {});
+    return Math.max(0, Math.min(
+      Math.min(p.counterLength, p.counterWidth) / 2,
+      p.counterStack / 2
+    ));
+  }
+
+  function normalise(params) {
+    var p = {}, k;
+    for (k in DEFAULTS) p[k] = DEFAULTS[k];
+    for (k in params) if (params[k] !== undefined && params[k] !== null && params[k] !== '') p[k] = params[k];
+    p.lid = !!p.lid;
+    p.counterLength = Math.max(2, +p.counterLength);
+    p.counterWidth = Math.max(2, +p.counterWidth);
+    p.counterStack = Math.max(1, +p.counterStack);
+    p.thickness = Math.max(0.2, +p.thickness);
+    p.outerWall = Math.max(0.4, +p.outerWall);
+    p.innerWall = Math.max(0.4, +p.innerWall);
+    p.lidWall = Math.max(0.4, +p.lidWall);
+    p.lidClearance = clamp(+p.lidClearance, -0.5, 1);
+    p.window = clamp(+p.window, 0, 0.9);
+    p.opening = clamp(+p.opening, 0, 0.9);
+    p.fillet = clamp(+p.fillet, 0, 50);
+    p.lidNotch = clamp(+p.lidNotch, 0, 0.95);
+    p.cols = Math.max(0, Math.round(+p.cols || 0));
+    p.rows = Math.max(0, Math.round(+p.rows || 0));
+    p.maxLength = Math.max(10, +p.maxLength);
+    p.maxWidth = Math.max(10, +p.maxWidth);
+    return p;
+  }
+
+  /* ---------- parts ---------- */
+
+  function perforatedPlate(p, W, L, offX, offY, rows, cols) {
+    var winW = p.counterWidth * p.window, winL = p.counterLength * p.window;
+    var outer = [rectLoop(0, 0, W, L)];
+    var holes = [];
+    if (Math.min(winW, winL) > 0.5) {
+      var r = Math.min(p.fillet, Math.min(winW, winL) / 2);
+      var pitchX = p.counterWidth + p.innerWall;
+      var pitchY = p.counterLength + p.innerWall;
+      // JSCAD's hole triangulation is sensitive to holes that share exact
+      // coordinates: a grid of sharp-cornered windows otherwise leaves
+      // T-junctions in the shell. Nudging each window by a picometre breaks
+      // the ties and affects nothing measurable.
+      var tie = 0;
+      for (var i = 0; i < rows; i++) {
+        for (var j = 0; j < cols; j++) {
+          tie += 1e-9;
+          holes.push(roundedRectLoop(
+            offX + i * pitchX + p.counterWidth / 2 + tie,
+            offY + j * pitchY + p.counterLength / 2 + tie,
+            winW, winL, r));
+        }
+      }
+    }
+    return extrudeLinear({ height: p.thickness }, fromLoops(outer, holes));
+  }
+
+  // Segments of one divider line: full span minus a gap centred on every cell.
+  function dividerLoops(span, first, pitch, count, gap, H, r) {
+    // No opening at all: one continuous wall. Chaining segments that touch
+    // edge to edge would leave the extruded shell non-manifold.
+    if (gap < 0.05) return [wallLoop(0, span, H, r, false, false)];
+    var loops = [], cursor = 0, i, centre, a;
+    for (i = 0; i < count; i++) {
+      centre = first + i * pitch;
+      a = centre - gap / 2;
+      if (a - cursor > 0.1) loops.push(wallLoop(cursor, a - cursor, H, r, cursor > 0, true));
+      cursor = centre + gap / 2;
+    }
+    if (span - cursor > 0.1) loops.push(wallLoop(cursor, span - cursor, H, r, true, false));
+    return loops;
+  }
+
+  function buildTray(p, g) {
+    var cl = p.counterLength, cw = p.counterWidth;
+    var iw = p.innerWall, ow = p.outerWall, r = p.fillet;
+    var pitchX = cw + iw, pitchY = cl + iw;          // X spans the width, Y the length
+    var gapX = cw * p.opening, gapY = cl * p.opening;
+    var wallH = g.trayH - p.thickness + EPS;   // walls sit on the base plate, sunk by EPS
+    var z0 = p.thickness - EPS;
+    var solids = [perforatedPlate(p, g.trayW, g.trayL, ow, ow, g.rows, g.cols)];
+
+    // Outer wall, built as a single frame
+    solids.push(translate([0, 0, z0], extrudeLinear({ height: wallH }, fromLoops(
+      [rectLoop(0, 0, g.trayW, g.trayL)],
+      [rectLoop(ow, ow, g.trayW - 2 * ow, g.trayL - 2 * ow)]
+    ))));
+
+    var i, loops;
+    // Dividers running along Y, notched once per slot along the length
+    for (i = 1; i < g.rows; i++) {
+      loops = dividerLoops(g.trayL - 2 * ow + 2 * EPS, cl / 2 + EPS, pitchY, g.cols, gapY, wallH, r);
+      if (loops.length) solids.push(slabY(ow + i * pitchX - iw, ow - EPS, fromLoops(loops), iw, z0));
+    }
+    // Dividers running along X, notched once per slot across the width
+    for (i = 1; i < g.cols; i++) {
+      loops = dividerLoops(g.trayW - 2 * ow + 2 * EPS, cw / 2 + EPS, pitchX, g.rows, gapX, wallH, r);
+      if (loops.length) solids.push(slabX(ow - EPS, ow + i * pitchY - iw, fromLoops(loops), iw, z0));
+    }
+    return solids;
+  }
+
+  function buildLid(p, g) {
+    var lw = p.lidWall, off = g.skirt + p.outerWall;
+    var r = p.fillet;
+    var wallH = g.lidH - p.thickness + EPS;
+    var z0 = p.thickness - EPS;
+    var solids = [perforatedPlate(p, g.lidW, g.lidL, off, off, g.rows, g.cols)];
+
+    // Closed ends (the corners belong to the side walls)
+    solids.push(box(lw - EPS, 0, z0, g.lidW - 2 * lw + 2 * EPS, lw, wallH));
+    solids.push(box(lw - EPS, g.lidL - lw, z0, g.lidW - 2 * lw + 2 * EPS, lw, wallH));
+
+    // Open sides: a low rail the whole way, full-height posts at the corners
+    var corner = g.lidL * (1 - p.lidNotch) / 2;
+    var rail = Math.max(p.thickness, wallH / 2);
+    var loop;
+    if (rail >= wallH - 0.1 || corner >= g.lidL / 2 - 0.1) {
+      loop = rectLoop(0, 0, g.lidL, wallH);          // no notch: a plain full-height wall
+    } else if (corner > r + 0.2) {
+      loop = notchedSideLoop(g.lidL, wallH, rail, corner, r);
+    } else {
+      loop = rectLoop(0, 0, g.lidL, rail);           // notch runs the whole side
+    }
+    solids.push(slabY(0, 0, fromLoops([loop]), lw, z0));
+    solids.push(slabY(g.lidW - lw, 0, fromLoops([loop]), lw, z0));
+    return solids;
+  }
+
+  /* ---------- public API ---------- */
+
+  function build(params) {
+    var p = normalise(params);
+    var g = computeLayout(p);
+    return { solids: p.lid ? buildLid(p, g) : buildTray(p, g), layout: g, params: p };
+  }
+
+  // Balanced pairwise union — much faster than a sequential fold.
+  function mergeSolids(solids) {
+    var level = solids.slice(), next, i;
+    while (level.length > 1) {
+      next = [];
+      for (i = 0; i < level.length; i += 2) {
+        next.push(i + 1 < level.length ? union(level[i], level[i + 1]) : level[i]);
+      }
+      level = next;
+    }
+    return level[0];
+  }
+
+  // Flatten solids into a plain triangle list [ [ [x,y,z] x3 ], ... ]
+  function triangles(solids) {
+    var out = [], list = Array.isArray(solids) ? solids : [solids];
+    for (var s = 0; s < list.length; s++) {
+      var polys = M.geometries.geom3.toPolygons(list[s]);
+      for (var i = 0; i < polys.length; i++) {
+        var v = polys[i].vertices;
+        for (var k = 2; k < v.length; k++) out.push([v[0], v[k - 1], v[k]]);
+      }
+    }
+    return out;
+  }
+
+  function binarySTL(tris, name) {
+    var buf = new ArrayBuffer(84 + tris.length * 50);
+    var view = new DataView(buf);
+    var header = new Uint8Array(buf, 0, 80);
+    var label = (name || 'counter-tray').slice(0, 79);
+    for (var h = 0; h < label.length; h++) header[h] = label.charCodeAt(h) & 0x7f;
+    view.setUint32(80, tris.length, true);
+    var o = 84;
+    for (var i = 0; i < tris.length; i++) {
+      var a = tris[i][0], b = tris[i][1], c = tris[i][2];
+      var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+      var vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+      var nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      var len = Math.hypot(nx, ny, nz) || 1;
+      view.setFloat32(o, nx / len, true); view.setFloat32(o + 4, ny / len, true); view.setFloat32(o + 8, nz / len, true);
+      o += 12;
+      var tri = [a, b, c];
+      for (var p = 0; p < 3; p++) {
+        view.setFloat32(o, tri[p][0], true);
+        view.setFloat32(o + 4, tri[p][1], true);
+        view.setFloat32(o + 8, tri[p][2], true);
+        o += 12;
+      }
+      view.setUint16(o, 0, true); o += 2;
+    }
+    return buf;
+  }
+
+  /* ---------- entry points for the jscad.app online editor ---------- */
+
+  function getParameterDefinitions() {
+    return [
+      { name: 'grp0', type: 'group', caption: 'Part' },
+      { name: 'lid', type: 'checkbox', checked: DEFAULTS.lid, caption: 'Generate the lid' },
+      { name: 'grp1', type: 'group', caption: 'Overall size' },
+      { name: 'maxLength', type: 'number', initial: DEFAULTS.maxLength, min: 20, max: 400, step: 1, caption: 'Maximum length with lid (mm)' },
+      { name: 'maxWidth', type: 'number', initial: DEFAULTS.maxWidth, min: 20, max: 400, step: 1, caption: 'Maximum width with lid (mm)' },
+      { name: 'cols', type: 'int', initial: DEFAULTS.cols, min: 0, max: 30, caption: 'Slots along length (0 = auto)' },
+      { name: 'rows', type: 'int', initial: DEFAULTS.rows, min: 0, max: 30, caption: 'Slots along width (0 = auto)' },
+      { name: 'grp2', type: 'group', caption: 'Counters' },
+      { name: 'counterLength', type: 'number', initial: DEFAULTS.counterLength, min: 5, max: 100, step: 0.5, caption: 'Counter length (mm)' },
+      { name: 'counterWidth', type: 'number', initial: DEFAULTS.counterWidth, min: 5, max: 100, step: 0.5, caption: 'Counter width (mm)' },
+      { name: 'counterStack', type: 'number', initial: DEFAULTS.counterStack, min: 2, max: 60, step: 0.5, caption: 'Stack height (mm)' },
+      { name: 'grp3', type: 'group', caption: 'Structure' },
+      { name: 'thickness', type: 'number', initial: DEFAULTS.thickness, min: 0.4, max: 5, step: 0.1, caption: 'Base thickness (mm)' },
+      { name: 'outerWall', type: 'number', initial: DEFAULTS.outerWall, min: 0.4, max: 5, step: 0.1, caption: 'Outer wall (mm)' },
+      { name: 'innerWall', type: 'number', initial: DEFAULTS.innerWall, min: 0.4, max: 5, step: 0.1, caption: 'Dividers (mm)' },
+      { name: 'window', type: 'number', initial: DEFAULTS.window, min: 0, max: 0.8, step: 0.05, caption: 'Base window (x counter)' },
+      { name: 'opening', type: 'number', initial: DEFAULTS.opening, min: 0, max: 0.7, step: 0.05, caption: 'Opening between slots (x counter)' },
+      { name: 'fillet', type: 'number', initial: DEFAULTS.fillet, min: 0, max: 20, step: 0.1, caption: 'Rounding radius (mm)' },
+      { name: 'grp4', type: 'group', caption: 'Lid' },
+      { name: 'lidWall', type: 'number', initial: DEFAULTS.lidWall, min: 0.4, max: 5, step: 0.1, caption: 'Lid wall (mm)' },
+      { name: 'lidClearance', type: 'number', initial: DEFAULTS.lidClearance, min: -0.3, max: 0.6, step: 0.05, caption: 'Fit clearance (mm)' },
+      { name: 'lidNotch', type: 'number', initial: DEFAULTS.lidNotch, min: 0, max: 0.9, step: 0.05, caption: 'Grip notch (x length)' }
+    ];
+  }
+
+  function main(params) {
+    return build(params || {}).solids;
+  }
+
+  return {
+    DEFAULTS: DEFAULTS,
+    build: build,
+    computeLayout: computeLayout,
+    maxFillet: maxFillet,
+    normalise: normalise,
+    mergeSolids: mergeSolids,
+    triangles: triangles,
+    binarySTL: binarySTL,
+    getParameterDefinitions: getParameterDefinitions,
+    main: main
+  };
+}));
+</script>
+
+<script>
+/* ==================================================================
+   3. Minimal WebGL viewer (no external 3D library)
+   ================================================================== */
+var Viewer = (function () {
+  'use strict';
+  var VS = [
+    'attribute vec3 aPos; attribute vec3 aNrm;',
+    'uniform mat4 uProj, uView;',
+    'varying vec3 vN, vP;',
+    'void main(){ vN = aNrm; vP = aPos; gl_Position = uProj * uView * vec4(aPos, 1.0); }'
+  ].join('\n');
+
+  var FS = [
+    'precision highp float;',
+    'varying vec3 vN, vP;',
+    'uniform vec3 uCam, uBase, uRim;',
+    'uniform float uFlat;',
+    'void main(){',
+    '  if (uFlat > 0.5) { gl_FragColor = vec4(uBase, uRim.x); return; }',
+    '  vec3 n = normalize(vN); if (!gl_FrontFacing) n = -n;',
+    '  vec3 v = normalize(uCam - vP);',
+    '  vec3 l1 = normalize(vec3(0.45, -0.80, 0.95));',
+    '  vec3 l2 = normalize(vec3(-0.85, 0.35, 0.30));',
+    '  float d1 = max(dot(n, l1), 0.0), d2 = max(dot(n, l2), 0.0);',
+    '  vec3 c = uBase * (0.30 + 0.70 * d1 + 0.24 * d2);',
+    '  vec3 h = normalize(l1 + v);',
+    '  c += vec3(1.0) * pow(max(dot(n, h), 0.0), 42.0) * 0.22;',
+    '  c += uRim * pow(1.0 - max(dot(n, v), 0.0), 3.0) * 0.30;',
+    '  gl_FragColor = vec4(c, 1.0);',
+    '}'
+  ].join('\n');
+
+  function compile(gl, type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+
+  function perspective(fovy, aspect, near, far) {
+    var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+    return new Float32Array([f / aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0]);
+  }
+  function lookAt(eye, tgt, up) {
+    var z0=eye[0]-tgt[0], z1=eye[1]-tgt[1], z2=eye[2]-tgt[2];
+    var l=Math.hypot(z0,z1,z2)||1; z0/=l; z1/=l; z2/=l;
+    var x0=up[1]*z2-up[2]*z1, x1=up[2]*z0-up[0]*z2, x2=up[0]*z1-up[1]*z0;
+    l=Math.hypot(x0,x1,x2)||1; x0/=l; x1/=l; x2/=l;
+    var y0=z1*x2-z2*x1, y1=z2*x0-z0*x2, y2=z0*x1-z1*x0;
+    return new Float32Array([
+      x0,y0,z0,0, x1,y1,z1,0, x2,y2,z2,0,
+      -(x0*eye[0]+x1*eye[1]+x2*eye[2]),
+      -(y0*eye[0]+y1*eye[1]+y2*eye[2]),
+      -(z0*eye[0]+z1*eye[1]+z2*eye[2]), 1
+    ]);
+  }
+  function hex(c) {
+    return [parseInt(c.substr(1,2),16)/255, parseInt(c.substr(3,2),16)/255, parseInt(c.substr(5,2),16)/255];
+  }
+
+  function create(canvas) {
+    var gl = canvas.getContext('webgl', { antialias:true, alpha:false, preserveDrawingBuffer:false })
+          || canvas.getContext('experimental-webgl', { antialias:true, alpha:false });
+    if (!gl) return null;
+
+    var prog = gl.createProgram();
+    gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, 'aPos');
+    gl.bindAttribLocation(prog, 1, 'aNrm');
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    gl.useProgram(prog);
+
+    var U = {};
+    ['uProj','uView','uCam','uBase','uRim','uFlat'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+
+    var posBuf = gl.createBuffer(), nrmBuf = gl.createBuffer(), gridBuf = gl.createBuffer();
+    var count = 0, gridCount = 0;
+    var centre = [0,0,0], radius = 60;
+    var cam = { az: -0.72, el: 0.66, dist: 260, pan: [0,0,0] };
+    var need = true;
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor.apply(gl, hex('#1E222A').concat([1]));
+
+    /* ---- geometry upload ---- */
+    function setTriangles(tris) {
+      var n = tris.length;
+      var pos = new Float32Array(n * 9), nrm = new Float32Array(n * 9);
+      var mn = [1e9,1e9,1e9], mx = [-1e9,-1e9,-1e9];
+      for (var i = 0; i < n; i++) {
+        var a = tris[i][0], b = tris[i][1], c = tris[i][2];
+        var ux=b[0]-a[0], uy=b[1]-a[1], uz=b[2]-a[2];
+        var vx=c[0]-a[0], vy=c[1]-a[1], vz=c[2]-a[2];
+        var nx=uy*vz-uz*vy, ny=uz*vx-ux*vz, nz=ux*vy-uy*vx;
+        var L=Math.hypot(nx,ny,nz)||1; nx/=L; ny/=L; nz/=L;
+        var t = [a,b,c];
+        for (var k = 0; k < 3; k++) {
+          var o = i*9 + k*3, p = t[k];
+          pos[o]=p[0]; pos[o+1]=p[1]; pos[o+2]=p[2];
+          nrm[o]=nx;   nrm[o+1]=ny;   nrm[o+2]=nz;
+          for (var d = 0; d < 3; d++) { if (p[d]<mn[d]) mn[d]=p[d]; if (p[d]>mx[d]) mx[d]=p[d]; }
+        }
+      }
+      count = n * 3;
+      gl.bindBuffer(gl.ARRAY_BUFFER, posBuf); gl.bufferData(gl.ARRAY_BUFFER, pos, gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuf); gl.bufferData(gl.ARRAY_BUFFER, nrm, gl.STATIC_DRAW);
+
+      centre = [(mn[0]+mx[0])/2, (mn[1]+mx[1])/2, (mn[2]+mx[2])/2];
+      radius = Math.max(1, Math.hypot(mx[0]-mn[0], mx[1]-mn[1], mx[2]-mn[2]) / 2);
+      buildGrid(mn, mx);
+      need = true;
+    }
+
+    function buildGrid(mn, mx) {
+      var step = 10, pad = 18;
+      var x0 = Math.floor((mn[0]-pad)/step)*step, x1 = Math.ceil((mx[0]+pad)/step)*step;
+      var y0 = Math.floor((mn[1]-pad)/step)*step, y1 = Math.ceil((mx[1]+pad)/step)*step;
+      var v = [], x, y;
+      var z = -0.05;
+      for (x = x0; x <= x1; x += step) v.push(x, y0, z, x, y1, z);
+      for (y = y0; y <= y1; y += step) v.push(x0, y, z, x1, y, z);
+      gridCount = v.length / 3;
+      gl.bindBuffer(gl.ARRAY_BUFFER, gridBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
+    }
+
+    function frame(view) {
+      if (view === 'top')        { cam.az = -Math.PI/2; cam.el = 1.4; }
+      else if (view === 'front') { cam.az = -Math.PI/2; cam.el = 0.06; }
+      else                       { cam.az = -0.72;      cam.el = 0.66; }
+      cam.pan = [0,0,0];
+      cam.dist = radius / Math.sin(0.305) * 1.06;
+      need = true;
+    }
+
+    /* ---- render ---- */
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = Math.max(1, Math.round(canvas.clientWidth * dpr));
+      var h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; need = true; }
+    }
+
+    function draw() {
+      resize();
+      if (!need) return;
+      need = false;
+      var w = canvas.width, h = canvas.height;
+      gl.viewport(0, 0, w, h);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!count) return;
+
+      var ce = Math.cos(cam.el), se = Math.sin(cam.el);
+      var tgt = [centre[0]+cam.pan[0], centre[1]+cam.pan[1], centre[2]+cam.pan[2]];
+      var eye = [
+        tgt[0] + cam.dist * ce * Math.cos(cam.az),
+        tgt[1] + cam.dist * ce * Math.sin(cam.az),
+        tgt[2] + cam.dist * se
+      ];
+      var near = Math.max(cam.dist - radius * 3, radius * 0.02);
+      gl.uniformMatrix4fv(U.uProj, false, perspective(0.61, w / h, near, cam.dist + radius * 6));
+      gl.uniformMatrix4fv(U.uView, false, lookAt(eye, tgt, [0,0,1]));
+      gl.uniform3fv(U.uCam, eye);
+
+      // build-plate grid
+      gl.uniform1f(U.uFlat, 1);
+      gl.uniform3fv(U.uBase, hex('#5C6470'));
+      gl.uniform3f(U.uRim, 0.5, 0, 0);
+      gl.disableVertexAttribArray(1);
+      gl.vertexAttrib3f(1, 0, 0, 1);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gridBuf);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.LINES, 0, gridCount);
+
+      // the part
+      gl.uniform1f(U.uFlat, 0);
+      gl.uniform3fv(U.uBase, hex('#B9C0CB'));
+      gl.uniform3fv(U.uRim, hex('#6E90C8'));
+      gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(1);
+      gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuf);
+      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, count);
+    }
+    (function loop() { draw(); requestAnimationFrame(loop); }());
+    window.addEventListener('resize', function () { need = true; });
+
+    /* ---- pointer interaction ---- */
+    var pts = {}, last = null, lastPinch = 0;
+    canvas.addEventListener('pointerdown', function (e) {
+      canvas.setPointerCapture(e.pointerId);
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      last = { x: e.clientX, y: e.clientY, shift: e.shiftKey || e.button === 1 };
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!pts[e.pointerId]) return;
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(pts);
+      if (ids.length >= 2) {
+        var a = pts[ids[0]], b = pts[ids[1]];
+        var d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (lastPinch) { cam.dist *= Math.max(0.5, Math.min(2, lastPinch / d)); need = true; }
+        lastPinch = d;
+        return;
+      }
+      var dx = e.clientX - last.x, dy = e.clientY - last.y;
+      last.x = e.clientX; last.y = e.clientY;
+      if (last.shift) {
+        var s = cam.dist * 0.0016;
+        cam.pan[0] += (Math.sin(cam.az) * dx) * s;
+        cam.pan[1] += (-Math.cos(cam.az) * dx) * s;
+        cam.pan[2] += dy * s;
+      } else {
+        cam.az -= dx * 0.0085;
+        cam.el = Math.max(-1.5, Math.min(1.5, cam.el + dy * 0.0085));
+      }
+      need = true;
+    });
+    function release(e) { delete pts[e.pointerId]; if (Object.keys(pts).length < 2) lastPinch = 0; }
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      cam.dist = Math.max(radius * 0.25, Math.min(radius * 20, cam.dist * Math.exp(e.deltaY * 0.0011)));
+      need = true;
+    }, { passive: false });
+
+    return { setTriangles: setTriangles, frame: frame };
+  }
+  return { create: create };
+}());
+</script>
+
+<script>
+/* ==================================================================
+   4. Application
+   ================================================================== */
+(function () {
+  'use strict';
+
+  /* ---------- interface strings ---------- */
+  var I18N = {
+    en: {
+      code: 'en', decimal: '.', thousands: ',',
+      title: 'Counter Tray Generator — parametric STL',
+      brand: 'Counter tray', tagline: 'parametric generator · stl',
+      partGroup: 'Part to generate', tray: 'Tray', lid: 'Lid',
+      langGroup: 'Interface language',
+      copyLink: 'Copy link', linkCopied: 'Link copied',
+      copyBlocked: 'Copy blocked', copyUnavailable: 'Copy unavailable',
+      reset: 'Reset', paramsLabel: 'Parameters', working: 'Working',
+      views: { iso: 'Iso', top: 'Top', front: 'Front' },
+      planTitle: 'Slot plan',
+      fuse: 'Fuse into one solid',
+      fuseTip: 'Slicers read multi-shell STL files without trouble. Tick this only if another tool refuses them.',
+      download: 'Download STL', preparing: 'Preparing…',
+      groups: { size: 'Overall size', counters: 'Counters', structure: 'Structure', lid: 'Lid' },
+      hints: {
+        size: 'Leave a slot count at 0 to work it out from the maximum dimension. Set it yourself and that dimension follows instead.',
+        counters: 'Length runs along the tray length, width across it. Equal values give square counters.',
+        lid: 'These also reserve room for the lid when the slot count is worked out automatically.'
+      },
+      fields: {
+        maxLength: 'Maximum length with lid', maxWidth: 'Maximum width with lid',
+        cols: 'Slots along length', rows: 'Slots along width',
+        counterLength: 'Counter length', counterWidth: 'Counter width', counterStack: 'Stack height',
+        thickness: 'Base thickness', outerWall: 'Outer wall', innerWall: 'Dividers',
+        window: 'Base window', opening: 'Opening between slots', fillet: 'Rounding radius',
+        lidWall: 'Lid wall', lidClearance: 'Fit clearance', lidNotch: 'Grip notch'
+      },
+      units: { mm: 'mm', auto: '0 = auto', fromSlots: 'from slots', xcounter: '× counter', xlength: '× length' },
+      planNote: function (c, r, s) { return c + ' × ' + r + ' slots · ' + s + ' mm'; },
+      statSlots: function (c, r) { return '<b>' + c + ' × ' + r + '</b> slots'; },
+      statStacks: function (n) { return '<b>' + n + '</b> counter stacks'; },
+      statTris: function (n) { return '<b>' + n + '</b> triangles'; },
+      statMass: function (v, g) { return '≈ <b>' + v + '</b> cm³ · ≈ <b>' + g + '</b> g PLA'; },
+      warn: {
+        stacks: 'Over 700 slots: the calculation and the print will both take a long time.',
+        lip: 'The lip around the window drops below 1.2 mm, so counters will sit poorly.',
+        clearance: 'Negative clearance makes a tight lid, which suits well-calibrated printers only.'
+      },
+      invalid: 'These settings do not produce valid geometry. Step back, or reset to the original values.',
+      noWebgl: 'This browser does not expose WebGL, so the 3D preview stays empty. The slot plan and the STL download still work.',
+      noLib: 'The JSCAD library could not be loaded from the internet.<br><br>Download <code>jscad-modeling.min.js</code> from npm, put it next to this file, then replace the URL list at the top of the script with <code>[\'jscad-modeling.min.js\']</code>.',
+      file: { tray: 'counter-tray', lid: 'counter-lid' }
+    },
+    fr: {
+      code: 'fr', decimal: ',', thousands: '\u202F',
+      title: 'Générateur de plateau à jetons — STL paramétrique',
+      brand: 'Plateau à jetons', tagline: 'générateur paramétrique · stl',
+      partGroup: 'Pièce à générer', tray: 'Plateau', lid: 'Couvercle',
+      langGroup: 'Langue de l\u2019interface',
+      copyLink: 'Copier le lien', linkCopied: 'Lien copié',
+      copyBlocked: 'Copie refusée', copyUnavailable: 'Copie indisponible',
+      reset: 'Réinitialiser', paramsLabel: 'Paramètres', working: 'Calcul',
+      views: { iso: '3/4', top: 'Dessus', front: 'Face' },
+      planTitle: 'Plan des cases',
+      fuse: 'Fusionner en un seul volume',
+      fuseTip: 'Les trancheurs lisent sans problème les STL multi-coques. À cocher seulement si un autre outil les refuse.',
+      download: 'Télécharger le STL', preparing: 'Préparation…',
+      groups: { size: 'Encombrement', counters: 'Jetons', structure: 'Structure', lid: 'Couvercle' },
+      hints: {
+        size: 'Laissez un nombre de cases à 0 pour le déduire de la dimension maximale. Saisissez-le vous-même et c\u2019est la dimension qui suit.',
+        counters: 'La longueur suit celle du plateau, la largeur sa largeur. Deux valeurs égales donnent des jetons carrés.',
+        lid: 'Ces réglages fixent aussi la place réservée au couvercle dans le calcul automatique des cases.'
+      },
+      fields: {
+        maxLength: 'Longueur maximale avec couvercle', maxWidth: 'Largeur maximale avec couvercle',
+        cols: 'Cases en longueur', rows: 'Cases en largeur',
+        counterLength: 'Longueur du jeton', counterWidth: 'Largeur du jeton', counterStack: 'Hauteur de la pile',
+        thickness: 'Épaisseur du fond', outerWall: 'Paroi extérieure', innerWall: 'Séparateurs',
+        window: 'Fenêtre du fond', opening: 'Ouverture entre cases', fillet: 'Rayon d\u2019arrondi',
+        lidWall: 'Paroi du couvercle', lidClearance: 'Jeu au montage', lidNotch: 'Encoche de préhension'
+      },
+      units: { mm: 'mm', auto: '0 = auto', fromSlots: 'selon les cases', xcounter: '× jeton', xlength: '× longueur' },
+      planNote: function (c, r, s) { return c + ' × ' + r + ' cases · ' + s + ' mm'; },
+      statSlots: function (c, r) { return '<b>' + c + ' × ' + r + '</b> cases'; },
+      statStacks: function (n) { return '<b>' + n + '</b> piles de jetons'; },
+      statTris: function (n) { return '<b>' + n + '</b> triangles'; },
+      statMass: function (v, g) { return '≈ <b>' + v + '</b> cm³ · ≈ <b>' + g + '</b> g PLA'; },
+      warn: {
+        stacks: 'Plus de 700 cases : le calcul et l\u2019impression seront très longs.',
+        lip: 'Le rebord autour de la fenêtre descend sous 1,2 mm : les jetons tiendront mal.',
+        clearance: 'Un jeu négatif donne un couvercle serré, à réserver aux imprimantes bien calibrées.'
+      },
+      invalid: 'Ces réglages ne produisent pas de géométrie valide. Revenez en arrière ou réinitialisez.',
+      noWebgl: 'Ce navigateur n\u2019expose pas WebGL, l\u2019aperçu 3D reste donc vide. Le plan des cases et le téléchargement du STL fonctionnent normalement.',
+      noLib: 'La bibliothèque JSCAD n\u2019a pas pu être chargée depuis Internet.<br><br>Téléchargez <code>jscad-modeling.min.js</code> depuis npm, placez-le à côté de ce fichier, puis remplacez la liste d\u2019URL en haut du script par <code>[\'jscad-modeling.min.js\']</code>.',
+      file: { tray: 'plateau-jetons', lid: 'couvercle-jetons' }
+    }
+  };
+
+  var GROUPS = [
+    { key: 'size', open: true, hint: 'size', fields: [
+      { k: 'maxLength', unit: 'mm',   min: 20, max: 400, step: 1 },
+      { k: 'maxWidth',  unit: 'mm',   min: 20, max: 400, step: 1 },
+      { k: 'cols',      unit: 'auto', min: 0,  max: 30,  step: 1 },
+      { k: 'rows',      unit: 'auto', min: 0,  max: 30,  step: 1 }
+    ]},
+    { key: 'counters', open: true, hint: 'counters', fields: [
+      { k: 'counterLength', unit: 'mm', min: 5, max: 100, step: 0.5 },
+      { k: 'counterWidth',  unit: 'mm', min: 5, max: 100, step: 0.5 },
+      { k: 'counterStack',  unit: 'mm', min: 2, max: 60, step: 0.5 }
+    ]},
+    { key: 'structure', fields: [
+      { k: 'thickness', unit: 'mm',       min: 0.4, max: 5,   step: 0.1 },
+      { k: 'outerWall', unit: 'mm',       min: 0.4, max: 5,   step: 0.1 },
+      { k: 'innerWall', unit: 'mm',       min: 0.4, max: 5,   step: 0.1 },
+      { k: 'fillet',    unit: 'mm',       min: 0,   max: 50,  step: 0.1 },
+      { k: 'window',    unit: 'xcounter', min: 0,   max: 0.8, step: 0.05 },
+      { k: 'opening',   unit: 'xcounter', min: 0,   max: 0.7, step: 0.05 }
+    ]},
+    { key: 'lid', hint: 'lid', fields: [
+      { k: 'lidWall',      unit: 'mm',      min: 0.4,  max: 5,   step: 0.1 },
+      { k: 'lidClearance', unit: 'mm',      min: -0.3, max: 0.6, step: 0.05 },
+      { k: 'lidNotch',     unit: 'xlength', min: 0,    max: 0.9, step: 0.05 }
+    ]}
+  ];
+
+  var el = function (id) { return document.getElementById(id); };
+
+  /* language is read from the hash before anything else, so failure
+     messages can already speak the right language */
+  var lang = 'en';
+  try {
+    var m = /(?:^|[#&])lang=(en|fr)/.exec(location.hash || '');
+    if (m) lang = m[1];
+  } catch (e) { /* sandboxed frame */ }
+  var T = I18N[lang];
+
+  var params = null, KEYS = null;
+  var viewer = null, current = null, timer = null;
+  var dirty = false, framed = false, warnings = [], lastLayout = null, lastParams = null;
+
+  /* ---------- number formatting ---------- */
+  function num(v, d) {
+    var s = v.toFixed(d);
+    return T.decimal === ',' ? s.replace('.', ',') : s;
+  }
+  function group(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, T.thousands); }
+  function plain(v) { return String(Math.round(v * 10) / 10).replace('.0', ''); } // filenames, always ASCII
+  function nice(v) { var s = plain(v); return T.decimal === ',' ? s.replace('.', ',') : s; }
+
+  /* "17" when square, "30 × 15" when not */
+  function counterLabel(p, sep, fmt) {
+    return p.counterLength === p.counterWidth ? fmt(p.counterLength)
+      : fmt(p.counterLength) + sep + fmt(p.counterWidth);
+  }
+
+  /* ---------- form ---------- */
+  var inputs = {}, labels = {}, units = {}, legends = {}, hints = {};
+
+  function buildForm() {
+    var frag = document.createDocumentFragment();
+    GROUPS.forEach(function (g) {
+      var fs = document.createElement('details');
+      if (g.open) fs.open = true;
+      var sum = document.createElement('summary');
+      var lg = document.createElement('span');
+      legends[g.key] = lg;
+      sum.appendChild(lg);
+      fs.appendChild(sum);
+      var body = document.createElement('div');
+      body.className = 'grp-body';
+      if (g.hint) {
+        var h = document.createElement('p'); h.className = 'hint';
+        hints[g.hint] = h; body.appendChild(h);
+      }
+      g.fields.forEach(function (f) {
+        var wrap = document.createElement('div'); wrap.className = 'f';
+        var top = document.createElement('div'); top.className = 'f-top';
+
+        var lab = document.createElement('label');
+        lab.className = 'f-k'; lab.htmlFor = 'n_' + f.k;
+        var unit = document.createElement('span'); unit.className = 'f-u';
+
+        var n = document.createElement('input');
+        n.type = 'number'; n.className = 'f-n'; n.id = 'n_' + f.k;
+        n.min = f.min; n.max = f.max; n.step = f.step;
+
+        var rng = document.createElement('input');
+        rng.type = 'range'; rng.min = f.min; rng.max = f.max; rng.step = f.step;
+
+        top.appendChild(lab); top.appendChild(unit); top.appendChild(n);
+        wrap.appendChild(top); wrap.appendChild(rng);
+        body.appendChild(wrap);
+
+        inputs[f.k] = { num: n, rng: rng, spec: f, wrap: wrap };
+        labels[f.k] = lab; units[f.k] = unit;
+
+        rng.addEventListener('input', function () { set(f.k, parseFloat(rng.value)); });
+        n.addEventListener('input', function () {
+          var v = parseFloat(n.value);
+          if (isFinite(v)) { params[f.k] = v; rng.value = v; syncLinks(); schedule(); }
+        });
+        n.addEventListener('blur', function () { set(f.k, clampField(f, parseFloat(n.value))); });
+      });
+      fs.appendChild(body);
+      frag.appendChild(fs);
+    });
+    el('params').appendChild(frag);
+  }
+
+  function clampField(f, v) {
+    if (!isFinite(v)) v = CounterTray.DEFAULTS[f.k];
+    return Math.min(f.max, Math.max(f.min, v));
+  }
+  function set(k, v) { params[k] = v; syncField(k); syncLinks(); schedule(); }
+
+  /* A slot count of 0 means "work it out from the dimension". Any other
+     value reverses the dependency: the dimension is then derived, so it
+     is shown greyed out and locked. */
+  var filletCap = 2;
+  var LINKS = [
+    { count: 'cols', extent: 'maxLength', total: 'totalL' },
+    { count: 'rows', extent: 'maxWidth',  total: 'totalW' }
+  ];
+
+  function syncLinks() {
+    var g = CounterTray.computeLayout(params);
+    // rounding radius: its ceiling tracks the counter sides and the stack
+    // height, so the slider can never reach a degenerate shape
+    var fi = inputs.fillet;
+    filletCap = Math.max(fi.spec.step, Math.floor(CounterTray.maxFillet(params) * 10) / 10);
+    fi.num.max = filletCap;
+    fi.rng.max = filletCap;
+    if (params.fillet > filletCap) params.fillet = filletCap;
+    syncField('fillet');
+    LINKS.forEach(function (t) {
+      var locked = params[t.count] > 0, i = inputs[t.extent];
+      if (locked) params[t.extent] = Math.round(g[t.total] * 10) / 10;
+      i.num.disabled = locked;
+      i.rng.disabled = locked;
+      i.wrap.classList.toggle('locked', locked);
+      syncField(t.extent);
+    });
+    renderUnits();
+  }
+
+  function renderUnits() {
+    Object.keys(units).forEach(function (k) {
+      var u = T.units[inputs[k].spec.unit];
+      LINKS.forEach(function (t) {
+        if (k === t.extent && params[t.count] > 0) u += ' · ' + T.units.fromSlots;
+      });
+      if (k === 'fillet') u += ' · \u2264 ' + nice(filletCap);
+      units[k].textContent = u;
+    });
+  }
+
+  function syncField(k) {
+    var i = inputs[k]; if (!i) return;
+    i.rng.value = params[k];
+    i.num.value = Math.round(params[k] * 1000) / 1000;
+  }
+  function syncAll() { Object.keys(inputs).forEach(syncField); syncLinks(); syncMode(); }
+  function syncMode() {
+    el('btnTray').setAttribute('aria-pressed', String(!params.lid));
+    el('btnLid').setAttribute('aria-pressed', String(!!params.lid));
+  }
+
+  /* ---------- language ---------- */
+  function applyLang(next) {
+    lang = next; T = I18N[lang];
+    document.documentElement.lang = T.code;
+    document.title = T.title;
+
+    el('brandName').textContent = T.brand;
+    el('brandTag').textContent = T.tagline;
+    el('segPart').setAttribute('aria-label', T.partGroup);
+    el('segLang').setAttribute('aria-label', T.langGroup);
+    el('btnTray').textContent = T.tray;
+    el('btnLid').textContent = T.lid;
+    el('btnLink').textContent = T.copyLink;
+    el('btnReset').textContent = T.reset;
+    el('params').setAttribute('aria-label', T.paramsLabel);
+    el('busyText').textContent = T.working;
+    el('planTitle').textContent = T.planTitle;
+    el('fuseLabel').textContent = T.fuse;
+    el('fuseLabel').parentNode.title = T.fuseTip;
+    el('download').textContent = T.download;
+
+    Array.prototype.forEach.call(document.querySelectorAll('.views button'), function (b) {
+      b.textContent = T.views[b.dataset.view];
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#segLang button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+    });
+
+    Object.keys(legends).forEach(function (k) { legends[k].textContent = T.groups[k]; });
+    Object.keys(hints).forEach(function (k) { hints[k].textContent = T.hints[k]; });
+    Object.keys(labels).forEach(function (k) { labels[k].textContent = T.fields[k]; });
+    renderUnits();
+
+    if (viewer === null && el('stage').classList.contains('failed')) el('stageFail').textContent = T.noWebgl;
+    writeHash();
+    render();
+  }
+
+  /* ---------- URL state ---------- */
+  function writeHash() {
+    var out = [];
+    if (KEYS) KEYS.forEach(function (k) {
+      var v = params[k], d = CounterTray.DEFAULTS[k];
+      if (v !== d) out.push(k + '=' + (typeof v === 'boolean' ? (v ? 1 : 0) : v));
+    });
+    if (lang !== 'en') out.push('lang=' + lang);
+    try { history.replaceState(null, '', out.length ? '#' + out.join('&') : '#'); }
+    catch (e) { /* sandboxed frames refuse history writes; the tool still works */ }
+  }
+  function readHash() {
+    var h = '';
+    try { h = location.hash.replace(/^#/, ''); } catch (e) { return; }
+    if (!h) return;
+    h.split('&').forEach(function (pair) {
+      var kv = pair.split('='), k = kv[0], v = kv[1];
+      if (v === undefined || KEYS.indexOf(k) < 0) return;
+      params[k] = (k === 'lid') ? v === '1' : parseFloat(v);
+    });
+  }
+
+  /* ---------- plan drawing ---------- */
+  function drawPlan(layout, p) {
+    var W = p.lid ? layout.lidW : layout.trayW;
+    var L = p.lid ? layout.lidL : layout.trayL;
+    var pad = Math.max(W, L) * 0.09;
+    var svg = el('plan');
+    svg.setAttribute('viewBox', [-pad, -pad, W + 2 * pad, L + 2 * pad].join(' '));
+    var u = Math.max(W, L) / 150;
+    var s = ['<rect x="0" y="0" width="' + W + '" height="' + L + '" fill="#fff" stroke="#2C4B7C" stroke-width="' + (1.4 * u) + '"/>'];
+    var off = (p.lid ? layout.skirt : 0) + p.outerWall;
+    var pitchX = p.counterWidth + p.innerWall, pitchY = p.counterLength + p.innerWall;
+    var winW = p.counterWidth * p.window, winL = p.counterLength * p.window;
+    var open = Math.min(winW, winL) > 0.5;
+    for (var i = 0; i < layout.rows; i++) {
+      for (var j = 0; j < layout.cols; j++) {
+        var cx = off + i * pitchX, cy = off + j * pitchY;
+        s.push('<rect x="' + cx + '" y="' + cy + '" width="' + p.counterWidth + '" height="' + p.counterLength +
+               '" fill="#D9E1EF" stroke="#8FA5C4" stroke-width="' + (0.5 * u) + '"/>');
+        if (open) {
+          var mx = (p.counterWidth - winW) / 2, my = (p.counterLength - winL) / 2;
+          s.push('<rect x="' + (cx + mx) + '" y="' + (cy + my) + '" width="' + winW + '" height="' + winL +
+                 '" rx="' + Math.min(2, Math.min(winW, winL) / 3) + '" fill="#F6F4ED" stroke="#2C4B7C" stroke-width="' + (0.5 * u) + '"/>');
+        }
+      }
+    }
+    svg.innerHTML = s.join('');
+  }
+
+  /* ---------- text rendering (re-runs on language change) ---------- */
+  function render() {
+    if (!lastLayout) return;
+    var g = lastLayout, p = lastParams;
+    el('planNote').textContent = T.planNote(g.cols, g.rows, counterLabel(p, ' × ', nice));
+
+    el('warn').innerHTML = warnings.map(function (w) {
+      var v = T.warn[w[0]];
+      return typeof v === 'function' ? v.apply(null, w.slice(1).map(function (x) { return num(x, 1); })) : v;
+    }).join(' ');
+    el('warn').classList.toggle('on', warnings.length > 0);
+
+    if (!current) return;
+    var cg = current.res.layout, cp = current.res.params;
+    var W = cp.lid ? cg.lidW : cg.trayW, L = cp.lid ? cg.lidL : cg.trayL, H = cp.lid ? cg.lidH : cg.trayH;
+    el('dims').innerHTML = num(L, 1) + ' <em>×</em> ' + num(W, 1) + ' <em>×</em> ' + num(H, 1) + ' <em>mm</em>';
+    el('stats').innerHTML = [
+      '<span>' + T.statSlots(cg.cols, cg.rows) + '</span>',
+      '<span>' + T.statStacks(cg.stacks) + '</span>',
+      '<span>' + T.statTris(group(current.tris.length)) + '</span>',
+      current.vol ? '<span>' + T.statMass(num(current.vol / 1000, 1), Math.round(current.vol / 1000 * 1.24)) + '</span>' : '',
+      '<span>' + current.ms + ' ms</span>'
+    ].join('');
+  }
+
+  /* ---------- generation ---------- */
+  function schedule() {
+    dirty = true;
+    el('busy').classList.add('on');
+    el('download').disabled = true;
+    clearTimeout(timer);
+    timer = setTimeout(run, 200);
+  }
+
+  function run() {
+    var p = CounterTray.normalise(params);
+    lastLayout = CounterTray.computeLayout(p);
+    lastParams = p;
+    drawPlan(lastLayout, p);
+    writeHash();
+
+    warnings = [];
+    if (lastLayout.stacks > 700) warnings.push(['stacks']);
+    if (Math.min(p.counterLength, p.counterWidth) * (1 - p.window) / 2 < 1.2) warnings.push(['lip']);
+    if (p.lid && p.lidClearance < 0) warnings.push(['clearance']);
+    render();
+
+    // let the browser paint the busy indicator before the heavy work
+    requestAnimationFrame(function () { setTimeout(build, 0); });
+  }
+
+  function build() {
+    var t0 = performance.now(), res;
+    try { res = CounterTray.build(params); }
+    catch (err) {
+      el('busy').classList.remove('on');
+      el('warn').textContent = T.invalid;
+      el('warn').classList.add('on');
+      return;
+    }
+    var tris = CounterTray.triangles(res.solids);
+    var vol = 0;
+    try { res.solids.forEach(function (s) { vol += jscadModeling.measurements.measureVolume(s); }); }
+    catch (e) { vol = 0; }
+
+    current = { res: res, tris: tris, vol: vol, ms: Math.round(performance.now() - t0) };
+    dirty = false;
+
+    if (viewer) { viewer.setTriangles(tris); if (!framed) { viewer.frame('iso'); framed = true; } }
+    render();
+    el('busy').classList.remove('on');
+    el('download').disabled = false;
+  }
+
+  /* ---------- STL ---------- */
+  function download() {
+    if (!current) return;
+    var btn = el('download'), label = T.download;
+    btn.disabled = true; btn.textContent = T.preparing;
+    requestAnimationFrame(function () { setTimeout(function () {
+      try {
+        var tris = current.tris;
+        if (el('fuse').checked) tris = CounterTray.triangles(CounterTray.mergeSolids(current.res.solids));
+        var g = current.res.layout, p = current.res.params;
+        var name = T.file[p.lid ? 'lid' : 'tray'] + '_' + g.cols + 'x' + g.rows + '_' +
+                   counterLabel(p, 'x', plain) + 'mm';
+        var blob = new Blob([CounterTray.binarySTL(tris, name)], { type: 'model/stl' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name + '.stl';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      } finally {
+        btn.disabled = false; btn.textContent = label;
+      }
+    }, 0); });
+  }
+
+  /* ---------- wiring ---------- */
+  function start() {
+    if (!window.CounterTray) window.CounterTray = window.CounterTrayFactory(window.jscadModeling);
+    params = Object.assign({}, CounterTray.DEFAULTS);
+    KEYS = Object.keys(CounterTray.DEFAULTS);
+    readHash();
+    buildForm();
+    syncAll();
+
+    try { viewer = Viewer.create(el('gl')); } catch (e) { viewer = null; }
+    if (!viewer) el('stage').classList.add('failed');
+
+    applyLang(lang);
+
+    el('btnTray').addEventListener('click', function () { params.lid = false; syncMode(); schedule(); });
+    el('btnLid').addEventListener('click', function () { params.lid = true; syncMode(); schedule(); });
+    el('btnReset').addEventListener('click', function () {
+      params = Object.assign({}, CounterTray.DEFAULTS); syncAll(); schedule();
+    });
+    el('btnLink').addEventListener('click', function (e) {
+      writeHash();
+      var b = e.currentTarget;
+      var flash = function (msg) { b.textContent = msg; setTimeout(function () { b.textContent = T.copyLink; }, 1600); };
+      if (!navigator.clipboard) { flash(T.copyUnavailable); return; }
+      navigator.clipboard.writeText(String(location.href)).then(
+        function () { flash(T.linkCopied); },
+        function () { flash(T.copyBlocked); }
+      );
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#segLang button'), function (b) {
+      b.addEventListener('click', function () { if (b.dataset.lang !== lang) applyLang(b.dataset.lang); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.views button'), function (b) {
+      b.addEventListener('click', function () { if (viewer) viewer.frame(b.dataset.view); });
+    });
+    el('download').addEventListener('click', download);
+
+    schedule();
+  }
+
+  if (window.jscadModeling) start();
+  else {
+    window.addEventListener('jscad-ready', start);
+    window.addEventListener('jscad-failed', function () {
+      el('stage').classList.add('failed');
+      el('stageFail').innerHTML = T.noLib;
+    });
+  }
+}());
+</script>
+</body>
+</html>
