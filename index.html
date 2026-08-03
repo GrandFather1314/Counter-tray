@@ -297,10 +297,6 @@ input[type=range]:focus-visible{outline:2px solid var(--hot);outline-offset:3px;
     <div class="spec-dims" id="dims">— <em>×</em> — <em>×</em> —</div>
     <div class="spec-list" id="stats"></div>
     <div class="spec-actions">
-      <label class="check" style="font-size:11px">
-        <input type="checkbox" id="fuse">
-        <span id="fuseLabel">Fuse into one solid</span>
-      </label>
       <button type="button" class="dl" id="download" disabled>Download STL</button>
     </div>
     <p class="warn" id="warn"></p>
@@ -1023,8 +1019,6 @@ var Viewer = (function () {
       reset: 'Reset', paramsLabel: 'Parameters', working: 'Working',
       views: { iso: 'Iso', top: 'Top', front: 'Front' },
       planTitle: 'Slot plan',
-      fuse: 'Fuse into one solid',
-      fuseTip: 'Slicers read multi-shell STL files without trouble. Tick this only if another tool refuses them.',
       download: 'Download STL', preparing: 'Preparing…',
       groups: { size: 'Overall size', counters: 'Counters', structure: 'Structure', lid: 'Lid' },
       hints: {
@@ -1067,8 +1061,6 @@ var Viewer = (function () {
       reset: 'Réinitialiser', paramsLabel: 'Paramètres', working: 'Calcul',
       views: { iso: '3/4', top: 'Dessus', front: 'Face' },
       planTitle: 'Plan des cases',
-      fuse: 'Fusionner en un seul volume',
-      fuseTip: 'Les trancheurs lisent sans problème les STL multi-coques. À cocher seulement si un autre outil les refuse.',
       download: 'Télécharger le STL', preparing: 'Préparation…',
       groups: { size: 'Encombrement', counters: 'Jetons', structure: 'Structure', lid: 'Couvercle' },
       hints: {
@@ -1288,8 +1280,6 @@ var Viewer = (function () {
     el('params').setAttribute('aria-label', T.paramsLabel);
     el('busyText').textContent = T.working;
     el('planTitle').textContent = T.planTitle;
-    el('fuseLabel').textContent = T.fuse;
-    el('fuseLabel').parentNode.title = T.fuseTip;
     el('download').textContent = T.download;
 
     Array.prototype.forEach.call(document.querySelectorAll('.views button'), function (b) {
@@ -1441,7 +1431,6 @@ var Viewer = (function () {
     requestAnimationFrame(function () { setTimeout(function () {
       try {
         var tris = current.tris;
-        if (el('fuse').checked) tris = CounterTray.triangles(CounterTray.mergeSolids(current.res.solids));
         var g = current.res.layout, p = current.res.params;
         var name = T.file[p.lid ? 'lid' : 'tray'] + '_' + g.cols + 'x' + g.rows + '_' +
                    counterLabel(p, 'x', plain) + 'mm';

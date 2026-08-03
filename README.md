@@ -32,7 +32,6 @@ The generated tray is a grid of slots (one slot = one storage spot for a stack o
 | **Reset** | Restores the default values. |
 | **Iso / Top / Front views** | Reframes the 3D preview camera. |
 | **Slot plan** | 2D preview of the slot grid. |
-| **Fuse into one solid** | Before export, merges the different shells (plate, walls, dividers) into a single solid. Only useful if a slicer refuses multi-shell STL files. |
 | **Download STL** | Exports the currently displayed part as a binary STL file. |
 
 A warning banner may appear if the current settings produce fragile or overly heavy-to-compute geometry (see the *Warnings* section below).
@@ -120,7 +119,7 @@ L'outil permet de :
 - visualiser le résultat en **3D en temps réel** (vue orbitale iso / dessus / face) ;
 - visualiser en parallèle un **plan 2D des cases** ;
 - générer soit le **plateau** (tray), soit son **couvercle** (lid) ;
-- **exporter le modèle en STL** (binaire), prêt pour l'impression 3D, avec une option pour fusionner toutes les coques en un seul volume ;
+- **exporter le modèle en STL** (binaire), prêt pour l'impression 3D ;
 - partager une configuration via un **lien contenant les paramètres** (encodés dans le hash de l'URL) ;
 - travailler en **français ou en anglais** (bascule instantanée de l'interface).
 
@@ -138,7 +137,6 @@ Le plateau généré est une grille de cases (une case = un emplacement pour une
 | **Réinitialiser** | Revient aux valeurs par défaut. |
 | **Vues Iso / Dessus / Face** | Recadre la caméra de l'aperçu 3D. |
 | **Plan des cases** | Aperçu 2D de la grille de cases, avec leurs fenêtres. |
-| **Fusionner en un seul volume** | Avant export, fusionne les différentes coques (plaque, parois, séparateurs) en un seul solide. Utile seulement si un logiciel de tranchage refuse les fichiers STL multi-coques. |
 | **Télécharger le STL** | Exporte la pièce actuellement affichée au format STL binaire. |
 
 Un bandeau d'avertissement peut apparaître si les réglages produisent une géométrie fragile ou trop longue à calculer (voir la section *Avertissements* plus bas).
