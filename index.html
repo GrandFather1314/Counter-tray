@@ -90,6 +90,11 @@ header{
 }
 .ghost:hover{border-color:var(--accent);color:var(--accent)}
 .ghost:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:29px;height:29px;padding:0;text-decoration:none;flex-shrink:0;
+}
+.icon-btn svg{width:15px;height:15px;display:block}
 
 main{display:grid;grid-template-columns:352px 1fr;min-height:0}
 
@@ -271,6 +276,13 @@ input[type=range]:focus-visible{outline:2px solid var(--hot);outline-offset:3px;
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
       <button type="button" data-lang="fr" aria-pressed="false">FR</button>
     </div>
+    <a class="ghost icon-btn" id="btnHelp" href="https://github.com/GrandFather1314/Counter-tray" target="_blank" rel="noopener noreferrer" aria-label="Help" title="Help">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 1.5-1.5 2-2.4 2.6-.5.35-.6.7-.6 1.4"></path>
+        <line x1="12" y1="17.5" x2="12" y2="17.51"></line>
+      </svg>
+    </a>
   </header>
 
   <main>
@@ -1016,7 +1028,7 @@ var Viewer = (function () {
       langGroup: 'Interface language',
       copyLink: 'Copy link', linkCopied: 'Link copied',
       copyBlocked: 'Copy blocked', copyUnavailable: 'Copy unavailable',
-      reset: 'Reset', paramsLabel: 'Parameters', working: 'Working',
+      reset: 'Reset', help: 'Help', paramsLabel: 'Parameters', working: 'Working',
       views: { iso: 'Iso', top: 'Top', front: 'Front' },
       planTitle: 'Slot plan',
       download: 'Download STL', preparing: 'Preparing…',
@@ -1058,7 +1070,7 @@ var Viewer = (function () {
       langGroup: 'Langue de l\u2019interface',
       copyLink: 'Copier le lien', linkCopied: 'Lien copié',
       copyBlocked: 'Copie refusée', copyUnavailable: 'Copie indisponible',
-      reset: 'Réinitialiser', paramsLabel: 'Paramètres', working: 'Calcul',
+      reset: 'Réinitialiser', help: 'Aide', paramsLabel: 'Paramètres', working: 'Calcul',
       views: { iso: '3/4', top: 'Dessus', front: 'Face' },
       planTitle: 'Plan des cases',
       download: 'Télécharger le STL', preparing: 'Préparation…',
@@ -1277,6 +1289,8 @@ var Viewer = (function () {
     el('btnLid').textContent = T.lid;
     el('btnLink').textContent = T.copyLink;
     el('btnReset').textContent = T.reset;
+    el('btnHelp').setAttribute('aria-label', T.help);
+    el('btnHelp').setAttribute('title', T.help);
     el('params').setAttribute('aria-label', T.paramsLabel);
     el('busyText').textContent = T.working;
     el('planTitle').textContent = T.planTitle;
